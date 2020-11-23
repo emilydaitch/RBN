@@ -3,6 +3,9 @@
 #include <time.h>       /* time */
 #include <unistd.h>     /* sleep */
 
+#define FIRST_PERTURBED_INDEX 0
+#define LAST_PERTURBED_INDEX 19
+#define NUM_NODES 20
 int globalNextStateEngine[8] = {1, 0, 0, 1, 1, 0, 0, 1};
 
 class BooleanNode {
@@ -14,13 +17,13 @@ public:
 	bool neighborState1, neighborState2, neighborState3;
 };
 
-BooleanNode twentyNodes[20];
+BooleanNode twentyNodes[NUM_NODES];
 
 static void printTwentyStatesHorizontal(bool showPerturbation)
 {
-	for ( int i = 0; i < 20; ++i)
+	for ( int i = 0; i < NUM_NODES; ++i)
 	{
-		if ( showPerturbation && i >= 0 && i <= 19)
+		if ( showPerturbation && i >= FIRST_PERTURBED_INDEX && i <= LAST_PERTURBED_INDEX )
 		{
 			printf(" %d%d%d*", twentyNodes[i].state, twentyNodes[i].state, twentyNodes[i].state);
 		}
@@ -39,11 +42,14 @@ static void printTwentyStatesHorizontal(bool showPerturbation)
 	printf("\n");
 }
 
+/* now we need to set neighbor states
+ * we must do this after the first for loop
+ * because we need all neighbors states populated
+ */
 static void renewNeighborStates()
 {													
-													// now we need to set neighbor states
-	for ( int i =0; i < 20; ++i )									// we must do this after the first for loop
-	{												// because we need all neighbors states populated
+	for ( int i =0; i < NUM_NODES; ++i )
+	{
 		twentyNodes[i].neighborState1 = twentyNodes[twentyNodes[i].neighborId1].state;
 		twentyNodes[i].neighborState2 = twentyNodes[twentyNodes[i].neighborId2].state;
 		twentyNodes[i].neighborState3 = twentyNodes[twentyNodes[i].neighborId3].state;
@@ -54,26 +60,27 @@ int main()
 {
 	srand (time(NULL));
 
-	for ( int i = 0; i < 20; ++i)
+	for ( int i = 0; i < NUM_NODES; ++i)
 	{
-		twentyNodes[i].id = i; 									// set id;
-		twentyNodes[i].state = rand() % 2;							// initialize state
+		twentyNodes[i].id = i;
+		twentyNodes[i].state = rand() % 2;
 		
-		twentyNodes[i].neighborId1 = rand() % 20; 						// set neighbors
-		twentyNodes[i].neighborId2 = rand() % 20;
-		twentyNodes[i].neighborId3 = rand() % 20;
-		
-		if ( twentyNodes[i].neighborId1 == twentyNodes[i].id ||					// check if any node has itself as a neighor
+		twentyNodes[i].neighborId1 = rand() % NUM_NODES;
+		twentyNodes[i].neighborId2 = rand() % NUM_NODES;
+		twentyNodes[i].neighborId3 = rand() % NUM_NODES;
+		// check if any node has itself as a neighor	
+		if ( twentyNodes[i].neighborId1 == twentyNodes[i].id ||
 			 twentyNodes[i].neighborId2 == twentyNodes[i].id ||
 			 twentyNodes[i].neighborId3 == twentyNodes[i].id)
 		{
 			if (twentyNodes[i].neighborId1 == twentyNodes[i].id)
 			{
-				if ( twentyNodes[i].neighborId1 > 0 ) --twentyNodes[i].neighborId1; 	// don't assign self to neighor
-													// if assigned self by rand() % 20,
-													// subtract one and reassign...
-													// unless id == 0, in which case add one,
-													// avoiding assigning -1 as an id
+				if ( twentyNodes[i].neighborId1 > 0 ) --twentyNodes[i].neighborId1;
+				// don't assign self to neighor
+				// if assigned self by rand() % NUM_NODES,
+				// subtract one and reassign...
+				// unless id == 0, in which case add one,
+				// avoiding assigning -1 as an id
 				else ++twentyNodes[i].neighborId1;
 			}
 			else if (twentyNodes[i].neighborId2 == twentyNodes[i].id)			// for neighbor 2
@@ -128,7 +135,7 @@ int main()
 			printTwentyStatesHorizontal(false);
 		}
 		
-		for ( int i = 0; i < 20; ++i )
+		for ( int i = 0; i < NUM_NODES; ++i )
 		{
 			int collectiveNeighborState = twentyNodes[i].neighborState1;			// use bitwise math to set
 			collectiveNeighborState << 1;							// collective state for the
